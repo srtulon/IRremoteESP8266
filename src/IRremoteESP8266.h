@@ -579,6 +579,13 @@
 #define SEND_SYMPHONY     _IR_ENABLE_DEFAULT_
 #endif  // SEND_SYMPHONY
 
+#ifndef DECODE_DAIKIN64
+#define DECODE_DAIKIN64       _IR_ENABLE_DEFAULT_
+#endif  // DECODE_DAIKIN64
+#ifndef SEND_DAIKIN64
+#define SEND_DAIKIN64         _IR_ENABLE_DEFAULT_
+#endif  // SEND_DAIKIN64
+
 #if (DECODE_ARGO || DECODE_DAIKIN || DECODE_FUJITSU_AC || DECODE_GREE || \
      DECODE_KELVINATOR || DECODE_MITSUBISHI_AC || DECODE_TOSHIBA_AC || \
      DECODE_TROTEC || DECODE_HAIER_AC || DECODE_HITACHI_AC || \
@@ -703,8 +710,9 @@ enum decode_type_t {
   SONY_38K,
   EPSON,  // 75
   SYMPHONY,
+  DAIKIN64,
   // Add new entries before this one, and update it to point to the last entry.
-  kLastDecodeType = SYMPHONY,
+  kLastDecodeType = DAIKIN64,
 };
 
 // Message lengths & required repeat values
@@ -732,6 +740,8 @@ const uint16_t kDaikinDefaultRepeat = kNoRepeat;
 const uint16_t kDaikin2StateLength = 39;
 const uint16_t kDaikin2Bits = kDaikin2StateLength * 8;
 const uint16_t kDaikin2DefaultRepeat = kNoRepeat;
+const uint16_t kDaikin64Bits = 64;
+const uint16_t kDaikin64DefaultRepeat = kNoRepeat;
 const uint16_t kDaikin160StateLength = 20;
 const uint16_t kDaikin160Bits = kDaikin160StateLength * 8;
 const uint16_t kDaikin160DefaultRepeat = kNoRepeat;
