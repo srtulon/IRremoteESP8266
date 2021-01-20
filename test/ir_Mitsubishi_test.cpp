@@ -1230,6 +1230,8 @@ TEST(TestDecodeMitsubishi136, DecodeRealExample) {
       "Power: On, Mode: 1 (Cool), Temp: 20C, Fan: 3 (High), "
       "Swing(V): 3 (Highest), Quiet: Off",
       IRAcUtils::resultAcToString(&irsend.capture));
+  stdAc::state_t r, p;
+  ASSERT_TRUE(IRAcUtils::decodeToState(&irsend.capture, &r, &p));
 }
 
 // Self decode a synthetic example.
@@ -1395,11 +1397,11 @@ TEST(TestMitsubishi136Class, SwingV) {
   ac.setSwingV(kMitsubishi136SwingVAuto);
   EXPECT_EQ(kMitsubishi136SwingVAuto, ac.getSwingV());
 
-  ac.setSwingV(kMitsubishi136SwingVAuto + 1);
-  EXPECT_EQ(kMitsubishi136SwingVAuto, ac.getSwingV());
-
   ac.setSwingV(kMitsubishi136SwingVLowest);
   EXPECT_EQ(kMitsubishi136SwingVLowest, ac.getSwingV());
+
+  ac.setSwingV(kMitsubishi136SwingVAuto + 1);
+  EXPECT_EQ(kMitsubishi136SwingVAuto, ac.getSwingV());
 
   ac.setSwingV(kMitsubishi136SwingVLow);
   EXPECT_EQ(kMitsubishi136SwingVLow, ac.getSwingV());
@@ -1622,11 +1624,11 @@ TEST(TestMitsubishi112Class, SwingV) {
   ac.setSwingV(kMitsubishi112SwingVAuto);
   EXPECT_EQ(kMitsubishi112SwingVAuto, ac.getSwingV());
 
-  ac.setSwingV(kMitsubishi112SwingVAuto + 1);
-  EXPECT_EQ(kMitsubishi112SwingVAuto, ac.getSwingV());
-
   ac.setSwingV(kMitsubishi112SwingVLowest);
   EXPECT_EQ(kMitsubishi112SwingVLowest, ac.getSwingV());
+
+  ac.setSwingV(kMitsubishi112SwingVAuto + 1);
+  EXPECT_EQ(kMitsubishi112SwingVAuto, ac.getSwingV());
 
   ac.setSwingV(kMitsubishi112SwingVLow);
   EXPECT_EQ(kMitsubishi112SwingVLow, ac.getSwingV());
@@ -1719,6 +1721,8 @@ TEST(TestDecodeMitsubishi112, DecodeRealExample) {
       "Power: On, Mode: 3 (Cool), Temp: 23C, Fan: 2 (Quiet), "
       "Swing(V): 7 (Auto), Swing(H): 12 (Auto), Quiet: On",
       IRAcUtils::resultAcToString(&irsend.capture));
+  stdAc::state_t r, p;
+  ASSERT_TRUE(IRAcUtils::decodeToState(&irsend.capture, &r, &p));
 }
 
 // Self decode a synthetic example.

@@ -1,10 +1,15 @@
 /*
  * Send & receive arbitrary IR codes via a web server or MQTT.
- * Copyright David Conran 2016, 2017, 2018, 2019
+ * Copyright David Conran 2016, 2017, 2018, 2019, 2020
  */
 #ifndef EXAMPLES_IRMQTTSERVER_IRMQTTSERVER_H_
 #define EXAMPLES_IRMQTTSERVER_IRMQTTSERVER_H_
 
+#if defined(ESP8266)
+#include <LittleFS.h>
+#else
+#include <SPIFFS.h>
+#endif
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #endif  // ESP8266
@@ -27,6 +32,26 @@
 #define EXAMPLES_ENABLE true
 #endif  // EXAMPLES_ENABLE
 
+// Uncomment one of the following to manually override what
+//    type of persistent storage is used.
+// Warning: Changing filesystems will cause all previous locally
+//    saved configuration data to be lost.
+// #define FILESYSTEM SPIFFS
+// #define FILESYSTEM LittleFS
+#ifndef FILESYSTEM
+// Set the default filesystem if none was specified.
+#ifdef ESP8266
+#define FILESYSTEM LittleFS
+#else
+#define FILESYSTEM SPIFFS
+#endif  // defined(ESP8266)
+#endif  // FILESYSTEM
+
+#if (FILESYSTEM == LittleFS)
+#define FILESYSTEMSTR "LittleFS"
+#else
+#define FILESYSTEMSTR "SPIFFS"
+#endif
 // ---------------------- Board Related Settings -------------------------------
 // NOTE: Make sure you set your Serial Monitor to the same speed.
 #define BAUD_RATE 115200  // Serial port Baud rate.
@@ -90,6 +115,12 @@ const IPAddress kSubnetMask = IPAddress(255, 255, 255, 0);
 
 // ----------------------- MQTT Related Settings -------------------------------
 #if MQTT_ENABLE
+#ifndef MQTT_BUFFER_SIZE
+// A value of 768 handles most cases easily. Use 1024 or more when using
+// `REPORT_RAW_UNKNOWNS` is recommended.
+#define MQTT_BUFFER_SIZE 768  // Default MQTT packet buffer size.
+#endif  // MQTT_BUFFER_SIZE
+const uint16_t kMqttBufferSize = MQTT_BUFFER_SIZE;  // Packet Buffer size.
 const uint32_t kMqttReconnectTime = 5000;  // Delay(ms) between reconnect tries.
 
 #define MQTT_ACK "sent"  // Sub-topic we send back acknowledgements on.
@@ -102,11 +133,23 @@ const uint32_t kMqttReconnectTime = 5000;  // Delay(ms) between reconnect tries.
 #define MQTT_CLIMATE_STAT "stat"  // Sub-topic for the climate stat topics.
 // Enable sending/receiving climate via JSON. `true` cost ~5k of program space.
 #define MQTT_CLIMATE_JSON false
+
 // Use Home Assistant-style operation modes.
-// i.e. Change the climate mode to "off" when turning the power "off".
+// TL;DR: Power and Mode are linked together. One changes the other.
+// i.e.
+//  - When power is set to "off", the mode is set to "off".
+//  - When the mode changes from "off" to something else, power is set to "on".
 // See: https://www.home-assistant.io/components/climate.mqtt/#modes
-// Change to false, if your home automation system doesn't like this.
+// *** WARNING ***
+// This setting will cause IRMQTTServer to forget what the previous operation
+// mode was. e.g. a power "on" -> "off" -> "on" will cause it to use the
+// default mode for your A/C, not the previous mode.
+// Typically this is "Auto" or "Cool" mode.
+// Change to false, if your home automation system doesn't like this, or if
+// you want IRMQTTServer to be the authoritative source for controling your
+// A/C.
 #define MQTT_CLIMATE_HA_MODE true
+
 // Do we send an IR message when we reboot and recover the existing A/C state?
 // If set to `false` you may miss requested state changes while the ESP was
 // down. If set to `true`, it will resend the previous desired state sent to the
@@ -148,7 +191,7 @@ const uint8_t kCaptureTimeout = 15;  // Milliseconds
 const uint16_t kMinUnknownSize = 2 * 10;
 #define REPORT_UNKNOWNS false  // Report inbound IR messages that we don't know.
 #define REPORT_RAW_UNKNOWNS false  // Report the whole buffer, recommended:
-                                   // MQTT_MAX_PACKET_SIZE of 1024 or more
+                                   // MQTT_BUFFER_SIZE of 1024 or more
 
 // Should we use and report individual A/C settings we capture via IR if we
 // can understand the individual settings of the remote.
@@ -239,7 +282,7 @@ const uint16_t kJsonAcStateMaxSize = 1024;  // Bytes
 // ----------------- End of User Configuration Section -------------------------
 
 // Constants
-#define _MY_VERSION_ "v1.4.7"
+#define _MY_VERSION_ "v1.5.2"
 
 const uint8_t kRebootTime = 15;  // Seconds
 const uint8_t kQuickDisplayTime = 2;  // Seconds
@@ -368,6 +411,7 @@ void handleRoot(void);
 String addJsReloadUrl(const String url, const uint16_t timeout_s,
                       const bool notify);
 void handleExamples(void);
+String htmlOptionItem(const String value, const String text, bool selected);
 String htmlSelectBool(const String name, const bool def);
 String htmlSelectClimateProtocol(const String name, const decode_type_t def);
 String htmlSelectAcStateProtocol(const String name, const decode_type_t def,
